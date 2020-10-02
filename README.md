@@ -1,6 +1,6 @@
 <p align="center"><img width="100" src="https://jonzhang-3.gitee.io/pics/atask/logo.png" alt="aTask logo"></p>
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/69461d12a70d4b259f74b399f4f5d63f)](https://app.codacy.com/gh/JonZhang3/aTask?utm_source=github.com&utm_medium=referral&utm_content=JonZhang3/aTask&utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/06532402d0184110a44328776b828302)](https://www.codacy.com/gh/JonZhang3/aTask/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=JonZhang3/aTask&amp;utm_campaign=Badge_Grade)
 
 # ATask
 
