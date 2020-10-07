@@ -20,7 +20,7 @@ Maven
 <dependency>
     <groupId>com.github.jonzhang3</groupId>
     <artifactId>aTask</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 </dependency>
 ```
 #### 示例
