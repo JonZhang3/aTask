@@ -6,7 +6,7 @@
 
     <groupId>com.github.jonzhang3</groupId>
     <artifactId>aTask</artifactId>
-    <version>1.0.2</version>
+    <version>1.1.0</version>
 
     <name>ATask</name>
     <description>A simple multi-purpose asynchronous task execution framework.</description>
@@ -49,6 +49,13 @@
             <groupId>com.github.jonzhang3</groupId>
             <artifactId>tuples</artifactId>
             <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.1.0</version>
+            <scope>provided</scope>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

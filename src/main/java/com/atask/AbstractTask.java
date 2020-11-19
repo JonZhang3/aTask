@@ -6,7 +6,6 @@ import com.atask.callback.Progress;
 import com.atask.util.Assert;
 import com.atask.util.Utils;
 
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -33,7 +32,7 @@ abstract class AbstractTask implements Task {
             this.type = type;
         }
         if (Utils.isEmpty(id)) {
-            this.id = UUID.randomUUID().toString();
+            this.id = Utils.generateId();
         } else {
             this.id = id;
         }

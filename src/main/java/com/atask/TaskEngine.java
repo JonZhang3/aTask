@@ -2,6 +2,7 @@ package com.atask;
 
 import com.atask.util.Assert;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
@@ -57,7 +58,9 @@ public final class TaskEngine {
     }
 
     public TaskGroup prepareGroup(String name) {
-        return new TaskGroup(name, executor);
+        TaskGroup taskGroup = new TaskGroup(name, executor);
+        executor.addTaskGroup(taskGroup);
+        return taskGroup;
     }
 
     /**
@@ -118,6 +121,24 @@ public final class TaskEngine {
 
     public List<Task> getRunningTasks() {
         return executor.getRunningTasks();
+    }
+
+    public int getRunningNumberofTask() {
+        return this.executor.getRunningNumberofTask();
+    }
+
+    // 获取已经完成的任务总量，包含任务组中的任务
+    public long getCompletedNumberOfTask() {
+        return this.executor.getCompletedNumberOfTask();
+    }
+
+    // 获取执行的任务总量
+    public long getTotalNumberOfTask() {
+        return this.executor.getTotalNumberOfTask();
+    }
+
+    protected Collection<TaskGroup> getRunningTaskGroups() {
+        return this.executor.getRunningTaskGroups();
     }
 
     public static class Builder {

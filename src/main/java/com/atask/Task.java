@@ -123,17 +123,6 @@ public interface Task {
         }
 
         /**
-         * 设置任务的 ID，如果不设置，默认会设置一个 UUID
-         *
-         * @param id 任务 ID
-         * @return {@link Builder}
-         */
-        public Builder id(String id) {
-            this.id = id;
-            return this;
-        }
-
-        /**
          * 设置任务的进度回调。使用 {@link Context#onProgress(int)} 会触发该回调
          *
          * @param progress 进度回调

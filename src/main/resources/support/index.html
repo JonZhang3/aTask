@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Index - ATask Monitor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <div>
+        <div class="h4">基本信息</div>
+        <table class="table table-bordered" id="basic-info"></table>
+    </div>
+    <div style="text-align: right">
+        <span>刷新时间：</span>
+        <select id="refresh-time">
+            <option value="1">1 分钟</option>
+            <option value="5">5 分钟</option>
+            <option value="10">10 分钟</option>
+            <option value="30">30 分钟</option>
+            <option value="60">60 分钟</option>
+        </select>
+    </div>
+    <div>
+        <div class="h4">任务信息</div>
+        <table class="table table-bordered" id="task-info"></table>
+    </div>
+    <div>
+        <div class="h4">任务组信息</div>
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>名称</th>
+                <th>运行任务数</th>
+            </tr>
+            </thead>
+            <tbody id="task-group-info">
+
+            </tbody>
+        </table>
+    </div>
+</div>
+<script src="js/jquery.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+
+    getBasicInfo();
+
+    function getBasicInfo() {
+        $.ajax({
+            url: 'basic.json',
+            type: 'POST',
+            dataType: "json",
+            success: function (data) {
+                var html = [];
+                html.push('<tr><td>版本</td><td>' + data.version + '</td></tr>');
+                html.push('<tr><td>java版本</td><td>' + data.java_version + '</td></tr>');
+                html.push('<tr><td>系统</td><td>' + data.os_info + '</td></tr>');
+                $('#basic-info').html(html.join(''));
+            }
+        });
+    }
+
+    function getTaskInfo() {
+        $.ajax({
+            url: 'tasks.json',
+            type: 'POST',
+            dataType: "json",
+            success: function (data) {
+                var taskHtml = [];
+                taskHtml.push('<tr><td>总任务数</td><td>' + data.count_task + '</td></tr>');
+                taskHtml.push('<tr><td>正在运行任务数</td><td>' + data.count_running_task + '</td></tr>');
+                taskHtml.push('<tr><td>完成任务数</td><td>' + data.count_completed_task + '</td></tr>');
+                taskHtml.push('<tr><td>正在运行任务组数</td><td>' + data.count_running_taskgroup + '</td></tr>');
+                $('#task-info').html(taskHtml.join(''));
+                var groupHtml = [];
+                for (var i = 0, len = data.groups.length; i < len; i++) {
+                    var item = data.groups[i];
+                    groupHtml.push('<tr><td>' + item.name + '</td><td>' + item.count_running_task + '</td></tr>');
+                }
+                $('#task-group-info').html(groupHtml.join(''));
+            }
+        });
+    }
+    getTaskInfo();
+    var taskInfoTime = setInterval(function () {
+        getTaskInfo();
+    }, 60 * 1000);
+
+    $('#refresh-time').change(function () {
+        var time = $(this).children('option:selected').val();
+        clearInterval(taskInfoTime);
+        taskInfoTime = setInterval(function () {
+            getTaskInfo();
+        }, parseInt(time) * 1000);
+    });
+
+</script>
+</body>
+</html>

@@ -1,10 +1,13 @@
 package com.atask;
 
+import java.util.Collection;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -13,10 +16,16 @@ import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
-class DefaultThreadPoolExecutor extends ThreadPoolExecutor {
+final class DefaultThreadPoolExecutor extends ThreadPoolExecutor {
 
+    // 统计运行的任务总数量
+    private final AtomicLong taskNumber = new AtomicLong(0);
+    // 统计完成的任务总数量
+    private final AtomicLong completedTaskNumber = new AtomicLong(0);
     private final Deque<Task> runningQueue = new ConcurrentLinkedDeque<>();
+    private final Map<String, TaskGroup> runningTaskGrous = new ConcurrentHashMap<>();
     private final LinkedBlockingDeque<Task> completedQueue = new LinkedBlockingDeque<>();
 
     private final CompletedTaskHandler completedTaskHandler;
@@ -37,14 +46,14 @@ class DefaultThreadPoolExecutor extends ThreadPoolExecutor {
         if (task instanceof BaseTask) {
             BaseTask bTask = (BaseTask) task;
             TaskExecutor taskExecutor = new TaskExecutor(bTask);
-            RunnableFuture<Object> future = newTaskFor(task, taskExecutor, null);
+            RunnableFuture<Object> future = newTaskFor(task, taskExecutor);
             bTask.setFuture(future);
             bTask.setState(State.INIT, State.QUEUED);
             execute(future);
         } else if (task instanceof ResultBaseTask) {
-            ResultBaseTask bTask = (ResultBaseTask) task;
-            ResultTaskExecutor executor = new ResultTaskExecutor(bTask);
-            RunnableFuture future = newTaskFor(task, executor);
+            ResultBaseTask<?> bTask = (ResultBaseTask<?>) task;
+            ResultTaskExecutor<?> executor = new ResultTaskExecutor<>(bTask);
+            RunnableFuture<?> future = newTaskFor(task, executor);
             bTask.setFuture(future);
             bTask.setState(State.INIT, State.QUEUED);
             execute(future);
@@ -54,7 +63,7 @@ class DefaultThreadPoolExecutor extends ThreadPoolExecutor {
 
     public void submit(TaskGroup.Item item, TaskGroup group) {
         TaskGroup.ItemExecutor executor = new TaskGroup.ItemExecutor(item, group);
-        RunnableFuture<Object> future = newTaskFor(item, executor, null);
+        RunnableFuture<Object> future = newTaskFor(item, executor);
         item.setFuture(future);
         item.setState(State.INIT, State.QUEUED);
         execute(future);
@@ -67,8 +76,13 @@ class DefaultThreadPoolExecutor extends ThreadPoolExecutor {
     }
 
 
-    private <T> RunnableFuture<T> newTaskFor(Task task, Runnable runnable, T value) {
-        return new CustomFutureTask<>(task, runnable, value);
+    private <T> RunnableFuture<T> newTaskFor(Task task, Runnable runnable) {
+        return new CustomFutureTask<>(task, runnable, null);
+    }
+
+    @Override
+    protected void beforeExecute(Thread t, Runnable r) {
+        taskNumber.incrementAndGet();
     }
 
     @Override
@@ -78,6 +92,7 @@ class DefaultThreadPoolExecutor extends ThreadPoolExecutor {
             Task task = futureTask.getTask();
             runningQueue.remove(task);
             completedQueue.offer(task);
+            completedTaskNumber.incrementAndGet();
         }
     }
 
@@ -93,8 +108,37 @@ class DefaultThreadPoolExecutor extends ThreadPoolExecutor {
         }).start();
     }
 
-    public final List<Task> getRunningTasks() {
+    // 获取正在运行的任务，包含任务组中的任务
+    protected final List<Task> getRunningTasks() {
         return new LinkedList<>(runningQueue);
+    }
+
+    // 获取正在运行的任务总量，包含任务组中的任务
+    protected int getRunningNumberofTask() {
+        return runningQueue.size();
+    }
+
+    // 获取已经完成的任务总量，包含任务组中的任务
+    protected long getCompletedNumberOfTask() {
+        return completedTaskNumber.get();
+    }
+
+    // 获取执行的任务总量
+    protected long getTotalNumberOfTask() {
+        return taskNumber.get();
+    }
+
+    protected void addTaskGroup(TaskGroup taskGroup) {
+        this.runningTaskGrous.put(taskGroup.getId(), taskGroup);
+    }
+
+    protected void removeTaskGroup(TaskGroup taskGroup) {
+        this.runningTaskGrous.remove(taskGroup.getId());
+    }
+
+    // 获取正在运行的任务组
+    protected Collection<TaskGroup> getRunningTaskGroups() {
+        return new LinkedList<>(this.runningTaskGrous.values());
     }
 
     private static class CustomFutureTask<V> extends FutureTask<V> {
