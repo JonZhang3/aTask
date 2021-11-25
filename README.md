@@ -36,7 +36,6 @@ TaskEngine engine = new TaskEngine.Builder()
     .queueCapacity(20)
     // 设置线程池的任务拒绝策略
     .rejectedExecutionHandler(RejectedExecutionHandler)
-    .completedTaskHandler(handler)// 设置对已完成任务的处理回调
     .build();
 // 可通过 getRunningTasks() 方法获取当前正在执行的任务
 ```

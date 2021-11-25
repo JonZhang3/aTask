@@ -6,7 +6,7 @@
 
     <groupId>com.github.jonzhang3</groupId>
     <artifactId>aTask</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
 
     <name>ATask</name>
     <description>A simple multi-purpose asynchronous task execution framework.</description>

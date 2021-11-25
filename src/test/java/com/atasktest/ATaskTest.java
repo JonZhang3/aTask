@@ -22,14 +22,13 @@ public class ATaskTest {
     @Before
     public void before() {
         engine = new TaskEngine.Builder()
-            .completedTaskHandler(System.out::println)
             .build();
     }
 
     @After
     public void after() {
         engine.shutdown();
-        engine = null;
+//        engine = null;
     }
 
     @Test

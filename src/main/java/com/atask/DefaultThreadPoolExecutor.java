@@ -26,7 +26,7 @@ final class DefaultThreadPoolExecutor extends ThreadPoolExecutor {
     private final AtomicLong completedTaskNumber = new AtomicLong(0);
     private final Deque<Task> runningQueue = new ConcurrentLinkedDeque<>();
     private final Map<String, TaskGroup> runningTaskGrous = new ConcurrentHashMap<>();
-    private final LinkedBlockingDeque<Task> completedQueue = new LinkedBlockingDeque<>();
+//    private final LinkedBlockingDeque<Task> completedQueue = new LinkedBlockingDeque<>();
 
     private final CompletedTaskHandler completedTaskHandler;
 
@@ -39,7 +39,7 @@ final class DefaultThreadPoolExecutor extends ThreadPoolExecutor {
         } else {
             this.completedTaskHandler = completedTaskHandler;
         }
-        startHandleCompletedTask();
+//        startHandleCompletedTask();
     }
 
     public void submit(Task task) {
@@ -91,22 +91,22 @@ final class DefaultThreadPoolExecutor extends ThreadPoolExecutor {
             CustomFutureTask<?> futureTask = (CustomFutureTask<?>) r;
             Task task = futureTask.getTask();
             runningQueue.remove(task);
-            completedQueue.offer(task);
+//            completedQueue.offer(task);
             completedTaskNumber.incrementAndGet();
         }
     }
 
-    private void startHandleCompletedTask() {
-        new Thread(() -> {
-            while (true) {
-                try {
-                    Task take = completedQueue.take();
-                    DefaultThreadPoolExecutor.this.completedTaskHandler.handle(take);
-                } catch (Throwable ignore) {
-                }
-            }
-        }).start();
-    }
+//    private void startHandleCompletedTask() {
+//        new Thread(() -> {
+//            while (true) {
+//                try {
+//                    Task take = completedQueue.take();
+//                    DefaultThreadPoolExecutor.this.completedTaskHandler.handle(take);
+//                } catch (Throwable ignore) {
+//                }
+//            }
+//        }).start();
+//    }
 
     // 获取正在运行的任务，包含任务组中的任务
     protected final List<Task> getRunningTasks() {

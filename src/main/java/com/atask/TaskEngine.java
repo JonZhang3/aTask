@@ -183,10 +183,10 @@ public final class TaskEngine {
             return this;
         }
 
-        public Builder completedTaskHandler(CompletedTaskHandler handler) {
-            this.completedTaskHandler = handler;
-            return this;
-        }
+//        public Builder completedTaskHandler(CompletedTaskHandler handler) {
+//            this.completedTaskHandler = handler;
+//            return this;
+//        }
 
         public TaskEngine build() {
             BlockingQueue<Runnable> queue = createQueue(this.queueCapacity);
