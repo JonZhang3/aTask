@@ -10,7 +10,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.ThreadFactory;
@@ -62,7 +61,7 @@ final class DefaultThreadPoolExecutor extends ThreadPoolExecutor {
     }
 
     public void submit(TaskGroup.Item item, TaskGroup group) {
-        TaskGroup.ItemExecutor executor = new TaskGroup.ItemExecutor(item, group);
+        TaskGroup.GroupItemExecutor executor = new TaskGroup.GroupItemExecutor(item, group);
         RunnableFuture<Object> future = newTaskFor(item, executor);
         item.setFuture(future);
         item.setState(State.INIT, State.QUEUED);

@@ -8,6 +8,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 // 非线程安全
 // 只能在同一线程添加任务，以及在同一线程调用 await 方法
@@ -17,13 +19,15 @@ public final class TaskGroup {
     private final String name;
     private final String id;
 
-    protected final AtomicInteger counter = new AtomicInteger(0);
-    protected final Data data = new Data();
+    final AtomicInteger counter = new AtomicInteger(0);
+    final Data data = new Data();
 
-    private final AtomicInteger latch = new AtomicInteger(0);
     private final Deque<Task> runningTaskQueue = new ConcurrentLinkedDeque<>();
+    private final ReentrantLock lock = new ReentrantLock();
+    private final Condition isEmpty = lock.newCondition();
+    private final AtomicInteger taskCount = new AtomicInteger(0);
 
-    protected TaskGroup(String name, DefaultThreadPoolExecutor executor) {
+    TaskGroup(String name, DefaultThreadPoolExecutor executor) {
         this.name = name;
         this.id = Utils.generateId();
         this.executor = executor;
@@ -38,11 +42,24 @@ public final class TaskGroup {
         }).start();
     }
 
+    /**
+     * 等待任务组中的所有任务执行完毕
+     * <p>
+     *     该方法会阻塞当前线程，直到任务组中的所有任务执行完毕
+     *     该方法只能在同一线程中调用
+     * </p>
+     * <p>之前该方法使用死循环实现，这有可能造成阻塞线程永远无法停止</p>
+     * <p>所以在新版本中放弃死循环的阻塞方式，改为使用 {@link Condition} 的方式实现</p>
+     */
     public void await() {
-        while (true) {
-            if (latch.get() == 0) break;
+        lock.lock();
+        try {
+            isEmpty.await();
+        } catch (InterruptedException ignore) {
+
+        } finally {
+            lock.unlock();
         }
-        executor.removeTaskGroup(this);
     }
 
     public int getCounter() {
@@ -57,8 +74,8 @@ public final class TaskGroup {
         Assert.notNull(item);
 
         item.setTaskGroup(this);
-        latch.incrementAndGet();
         runningTaskQueue.offer(item);
+        taskCount.incrementAndGet();
         executor.submit(item, this);
     }
 
@@ -82,7 +99,7 @@ public final class TaskGroup {
         return id;
     }
 
-    public final List<Task> getRunningTasks() {
+    public List<Task> getRunningTasks() {
         return new LinkedList<>(runningTaskQueue);
     }
 
@@ -90,7 +107,7 @@ public final class TaskGroup {
 
         private TaskGroup taskGroup;
 
-        protected Item(String type, String id, Executor executor, TaskGroup taskGroup) {
+        private Item(String type, String id, Executor executor, TaskGroup taskGroup) {
             super(type, id, executor);
             this.taskGroup = taskGroup;
         }
@@ -109,7 +126,7 @@ public final class TaskGroup {
 
         private final TaskGroup taskGroup;
 
-        protected Builder(Executor executor, TaskGroup taskGroup) {
+        private Builder(Executor executor, TaskGroup taskGroup) {
             super(executor);
             this.taskGroup = taskGroup;
         }
@@ -123,11 +140,11 @@ public final class TaskGroup {
         }
     }
 
-    protected static class ItemExecutor extends TaskExecutor {
+    protected static class GroupItemExecutor extends TaskExecutor {
 
         private final TaskGroup group;
 
-        protected ItemExecutor(BaseTask task, TaskGroup group) {
+        protected GroupItemExecutor(BaseTask task, TaskGroup group) {
             super(task);
             this.group = group;
         }
@@ -144,11 +161,22 @@ public final class TaskGroup {
 
         @Override
         protected void finallyExecute() {
-            super.finallyExecute();
-            this.group.latch.decrementAndGet();
-            this.group.runningTaskQueue.remove(this.task);
+            try {
+                super.finallyExecute();
+            } finally {
+                this.group.runningTaskQueue.remove(this.task);
+                this.group.taskCount.decrementAndGet();
+            }
+            // 尝试将任务数设置为 0，如果设置成功，然后尝试唤醒等待的线程    
+            if (this.group.taskCount.compareAndSet(0, 0)) {
+                this.group.lock.lock();
+                try {
+                    this.group.isEmpty.signalAll();
+                } finally {
+                    this.group.lock.unlock();
+                }
+            }
         }
     }
-
 
 }

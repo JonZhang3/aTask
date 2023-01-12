@@ -31,7 +31,7 @@ final class Json {
         }
 
         public JsonObject end() {
-            if(builder.charAt(builder.length() - 1) == ',') {
+            if (builder.charAt(builder.length() - 1) == ',') {
                 builder.deleteCharAt(builder.length() - 1);
             }
             builder.append("}");
@@ -64,7 +64,7 @@ final class Json {
         }
 
         public JsonArray end() {
-            if(builder.charAt(builder.length() - 1) == ',') {
+            if (builder.charAt(builder.length() - 1) == ',') {
                 builder.deleteCharAt(builder.length() - 1);
             }
             builder.append("]");
