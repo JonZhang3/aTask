@@ -134,7 +134,7 @@ public interface Task {
         }
 
         /**
-         * 设置任务完成时的回调，可以很实用 {@link Context#onSuccess(Object...)}、{@link Context#onError(String, Object)} 或
+         * 设置任务完成时的回调，可以使用 {@link Context#onSuccess(Object...)}、{@link Context#onError(String, Object)} 或
          * {@link Context#onError(Exception)} 触发该回调。
          * <p>
          * 如果调用 {@link Context#onSuccess(Object...)} 触发回调，任务状态为成功 {@link State#SUCCESS}，并且回调函数的第二个参数

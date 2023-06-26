@@ -21,7 +21,7 @@ public final class TaskEngine {
     private static final int DEFAULT_CORE_SIZE = Runtime.getRuntime().availableProcessors();
     private static final int DEFAULT_MAX_POOL_SIZE = Integer.MAX_VALUE;
     private static final int DEFAULT_QUEUE_CAPACITY = Integer.MAX_VALUE;
-    private static final int DEFAULT_KEEP_ALIVE_SECONDS = 60;//S
+    private static final int DEFAULT_KEEP_ALIVE_SECONDS = 60;// S
     private static final String DEFAULT_TASK_GROUP_NAME_PREFIX = "atask-group-";
 
     private final AtomicLong taskGroupNumber = new AtomicLong(0);
@@ -53,10 +53,21 @@ public final class TaskEngine {
         return new Task.Builder(executor);
     }
 
+    /**
+     * 使用默认的任务组名称初始化一个任务组
+     *
+     * @return {@link TaskGroup}
+     */
     public TaskGroup prepareGroup() {
         return this.prepareGroup(DEFAULT_TASK_GROUP_NAME_PREFIX + taskGroupNumber.incrementAndGet());
     }
 
+    /**
+     * 初始化一个任务组，可自定义任务组名称
+     *
+     * @param name 任务组的名称
+     * @return {@link TaskGroup}
+     */
     public TaskGroup prepareGroup(String name) {
         TaskGroup taskGroup = new TaskGroup(name, executor);
         executor.addTaskGroup(taskGroup);
@@ -117,6 +128,31 @@ public final class TaskEngine {
      */
     public void shutdown() {
         this.executor.shutdown();
+    }
+
+    /**
+     * 试图关闭线程池，同时阻塞等待线程池关闭
+     *
+     * @param timeout 超时时间
+     * @param unit    超时时间的时间单位
+     * @return {@code true} 线程池正常关闭；如果到达超时时间后，线程池仍未关闭，返回 {@code false}
+     * @see ThreadPoolExecutor#shutdown()
+     * @see ThreadPoolExecutor#awaitTermination(long, TimeUnit)
+     * @since 1.2.0
+     */
+    public boolean shutdown(long timeout, TimeUnit unit) throws InterruptedException {
+        this.executor.shutdown();
+        return this.executor.awaitTermination(timeout, unit);
+    }
+
+    /**
+     * 立即关闭线程池
+     *
+     * @see ThreadPoolExecutor#shutdownNow()
+     * @since 1.2.0
+     */
+    public void shutdownNow() {
+        this.executor.shutdownNow();
     }
 
     public List<Task> getRunningTasks() {

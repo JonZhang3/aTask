@@ -121,7 +121,7 @@ public class ATaskTest {
         Task task = engine.buildTask(ctx -> {
         }).build();
         task.cancel(false);
-        assertEquals(State.CANCLE, task.getState());
+        assertEquals(State.CANCEL, task.getState());
 
         task = engine.buildTask(ctx -> {
             try {
@@ -135,7 +135,7 @@ public class ATaskTest {
         } catch (InterruptedException ignore) {
         }
         task.cancel(true);
-        assertEquals(State.CANCLE, task.getState());
+        assertEquals(State.CANCEL, task.getState());
     }
 
 }

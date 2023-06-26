@@ -78,7 +78,7 @@ abstract class AbstractTask implements Task {
     }
 
     private void setStateToCancel() {
-        this.state.set(State.CANCLE);
+        this.state.set(State.CANCEL);
     }
 
     @Override

@@ -3,8 +3,6 @@ package com.atask;
 import com.atask.util.Utils;
 
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebInitParam;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -24,15 +22,14 @@ public class StatViewServlet extends HttpServlet {
     private String password;
 
 
-
     @Override
     public void init() throws ServletException {
         this.username = getInitParameter(PARAM_NAME_USERNAME);
         this.password = getInitParameter(PARAM_NAME_PASSWORD);
-        if(username == null) {
+        if (username == null) {
             username = "";
         }
-        if(password == null) {
+        if (password == null) {
             password = "";
         }
     }
@@ -43,17 +40,17 @@ public class StatViewServlet extends HttpServlet {
         String servletPath = req.getServletPath();
         String requestURI = req.getRequestURI();
         resp.setCharacterEncoding("UTF-8");
-        if(contextPath == null) {
+        if (contextPath == null) {
             contextPath = "";
         }
         String uri = contextPath + servletPath;
         String path = requestURI.substring(contextPath.length() + servletPath.length());
         // 登录接口，不需要验证
-        if("/toLogin".equals(path)) {
+        if ("/toLogin".equals(path)) {
             String reqUsername = req.getParameter(PARAM_NAME_USERNAME);
             String reqPassword = req.getParameter(PARAM_NAME_PASSWORD);
-            if(this.username.equals(reqUsername) && this.password.equals(reqPassword)) {
-                if(requireAuth()) {
+            if (this.username.equals(reqUsername) && this.password.equals(reqPassword)) {
+                if (requireAuth()) {
                     Cookie cookie = new Cookie(USER_KEY, encodeCookieValue());
                     cookie.setMaxAge(12 * 60 * 60);
                     resp.addCookie(cookie);
@@ -93,7 +90,7 @@ public class StatViewServlet extends HttpServlet {
             resp.sendRedirect("index.html");
             return;
         }
-        if(path.contains(".json")) {
+        if (path.contains(".json")) {
             String fullUrl = path;
             if (req.getQueryString() != null && req.getQueryString().length() > 0) {
                 fullUrl += "?" + req.getQueryString();
@@ -110,11 +107,11 @@ public class StatViewServlet extends HttpServlet {
 
     private boolean checkUser(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
-        if(cookies != null) {
+        if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if(USER_KEY.equals(cookie.getName())) {
+                if (USER_KEY.equals(cookie.getName())) {
                     String value = cookie.getValue();
-                    if(Utils.isNotEmpty(value)) {
+                    if (Utils.isNotEmpty(value)) {
                         try {
                             byte[] bytes = Utils.aesDecode(Base64.getDecoder().decode(value), password);
                             value = new String(bytes, StandardCharsets.UTF_8);
@@ -131,15 +128,15 @@ public class StatViewServlet extends HttpServlet {
 
     private void returnFile(String fileName, String uri, HttpServletResponse response) throws IOException {
         String filePath = RESOURCE_PATH + fileName;
-        if(fileName.endsWith(".html")) {
+        if (fileName.endsWith(".html")) {
             response.setContentType("text/html; charset=utf-8");
-        } else if(fileName.endsWith(".css")) {
+        } else if (fileName.endsWith(".css")) {
             response.setContentType("text/css;charset=utf-8");
-        } else if(fileName.endsWith(".js")) {
+        } else if (fileName.endsWith(".js")) {
             response.setContentType("text/javascript;charset=utf-8");
         }
         String text = Utils.readFromResource(filePath);
-        if(text == null) {
+        if (text == null) {
             response.sendRedirect(uri + "/index.html");
             return;
         }
@@ -155,7 +152,7 @@ public class StatViewServlet extends HttpServlet {
         if (url.equals("/basic.json")) {
             return TaskStatService.INSTANCE.getBasicInfo();
         }
-        if(url.equals("/tasks.json")) {
+        if (url.equals("/tasks.json")) {
             return TaskStatService.INSTANCE.getTaskInfo();
         }
         return "";
